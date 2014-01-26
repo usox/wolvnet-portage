@@ -1,0 +1,22 @@
+#!/sbin/runscript
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+[ -z "$INSTANCE" ] && INSTANCE="distpw"
+
+depend() {
+        need net
+}
+
+start() {
+        checkpath -q -d /var/lib/distpw-server/ -o root:root
+        ebegin "Starting distpw daemon"
+        eval start-stop-daemon --start -m -b --pidfile /var/run/distpw.pid -d /var/lib/distpw-server --exec /var/lib/distpw-server/distpw -- -u root -g root
+        eend $?
+}
+
+stop() {
+        ebegin "Stopping distpw daemon"
+        start-stop-daemon --stop --signal 2 --quiet --pidfile /var/run/distpw.pid
+        eend $?
+}

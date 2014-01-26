@@ -1,0 +1,253 @@
+#!/sbin/runscript
+# Copyright 2009-2013 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+# You are not supposed to run this script directly. Create a symlink
+# for the qemu instance you want to run as well as a copy of the
+# configuration file and modify it appropriately like so...
+#
+#   ln -s qemu /etc/init.d/kvm.myserver
+#   cp /etc/conf.d/qemu /etc/conf.d/kvm.myserver
+#   nano /etc/conf.d/kvm.myserver
+#
+# where 'kvm' is the virtual machine type ('qemu' and 'kvm' allowed)
+# and 'myserver' is the name of your instance.
+
+VMNAME=${SVCNAME#*.}
+VMTYPE=${SVCNAME%.*}
+VM_BINARY=
+PIDFILE=/run/vm/${SVCNAME}.pid
+MONITOR=/run/vm/${SVCNAME}.monitor
+QTAP_FILE=/run/vm/${SVCNAME}.qtap
+
+ENABLE_SDL=
+
+discern_vm_binary() {
+	case "$VMTYPE" in
+		kvm)
+			VM_BINARY=`type -p qemu-kvm`
+			[ -z "$VM_BINARY" ] && VM_BINARY=`type -p kvm`
+			;;
+		qemu)
+			VM_BINARY=`type -p qemu`
+			;;
+		*)
+			eerror "Failed to discern the binary for $VMTYPE"
+			;;
+	esac
+	return 0
+}
+
+discern_foreground() {
+	if [ -n "$VNC" ]; then
+		ewarn "VNC option is going away; set FOREGROUND=\"vnc=${VNC}\" instead"
+		FOREGROUND="vnc=${VNC}"
+	fi
+	case "${FOREGROUND:-none}" in
+		vnc*)
+			VNC=${FOREGROUND#*=}
+			if [ -z "$VNC" ]; then
+				eerror "FOREGROUND vnc is incorrectly set; must specify an address (:1 for example)"
+				return 1
+			fi
+			;;
+		sdl*)
+			ENABLE_SDL=${FOREGROUND#*=}
+			if [ -z "${ENABLE_SDL}" ]; then
+				eerror "FOREGROUND sdl is incorrectly set; must specify a DISPLAY address"
+				return 1
+			fi
+			;;
+		none)
+			;;
+		*)
+			eerror "Unknown FOREGROUND setting: $FOREGROUND"
+			return 1
+			;;
+	esac
+	return 0
+}
+
+DROP_USER=${DROP_USER:-nobody}
+MEMORY=${MEMORY:-512M}
+TIMEOUT=${TIMEOUT:-300}
+SMP=${SMP:-1}
+export KVM_USER=${KVM_USER:-"root"}
+
+extra_commands="reboot"
+
+depend() {
+	if [ "$VMNAME" = "$SVCNAME" ]; then
+		return 0
+	fi
+
+	sanity_check || return 1
+
+	case "$NIC_TYPE" in
+		br)
+			need ${NIC_NET_DEPS-net.br0}
+			;;
+	esac
+}
+
+send_command() {
+	local command="socat -u - UNIX-CONNECT:${MONITOR}"
+	type -p nc6 > /dev/null && command="nc6 -U ${MONITOR} --send-only"
+	echo "$@" | ${command} > /dev/null 2>&1
+}
+
+symlink_check() {
+	if [ "${VMNAME}" = "${SVCNAME}" ]; then
+		eerror "You are not supposed to run this script directly. Create a symlink"
+		eerror "for the qemu instance you want to run as well as a copy of the"
+		eerror "configuration file and modify it appropriately like so..."
+		eerror
+		eerror "  ln -s qemu /etc/init.d/kvm.myserver"
+		eerror "  cp /etc/conf.d/qemu /etc/conf.d/kvm.myserver"
+		eerror "  `basename "${EDITOR:-nano}"` /etc/conf.d/kvm.myserver"
+		eerror
+		eerror "where 'kvm' is the virtual machine type ('qemu' and 'kvm' allowed)"
+		eerror "and 'myserver' is the name of your instance."
+		return 1
+	fi
+}
+
+sanity_check() {
+	symlink_check || return 1
+
+	DISKIMAGE=$(readlink -f "${DISKIMAGE}")
+	if [ ! -f "${DISKIMAGE}" -a ! -b "${DISKIMAGE}" ]; then
+		eerror "couldn't find \$DISKIMAGE '$DISKIMAGE'"
+		return 1;
+	fi
+	discern_vm_binary || return 1
+	NIC_TYPE=${NIC_TYPE:-nat}
+
+	discern_foreground || return 1
+}
+
+start_pre() {
+	checkpath -d --owner root:root --mode 0644 "${PIDFILE%/*}" \
+		"${MONITOR%/*}"
+}
+
+start() {
+	sanity_check || return 1
+
+	local NIC_COMMAND=(	-net "nic,model=${NIC_MODEL:-virtio},macaddr=${MACADDR}" -net )
+
+	if [ "${NIC_TYPE}" = "br" ]; then
+		ebegin "creating qtap ${QTAP:-(auto allocating one)}"
+		if [ -n "$QTAP" ]; then
+			qtap-manipulate create_specific "${QTAP}" -u "${DROP_USER}"
+		else
+			QTAP=$(qtap-manipulate create -u "${DROP_USER}")
+			if [ 0 != $? ]; then
+				eerror "failed to create qtap interface"
+				return 1
+			fi
+		fi
+		echo "${QTAP}" > ${QTAP_FILE}
+		eend $?
+		NIC_COMMAND[${#NIC_COMMAND[@]}]="tap,ifname=${QTAP},script=no"
+	elif [ "${NIC_TYPE}" = "none" ]; then
+		NIC_COMMAND=( -net none )
+	else
+		NIC_COMMAND[${#NIC_COMMAND[@]}]=user
+	fi
+
+	local ss_args=( )
+	local vm_args=( -daemonize )
+
+	if [ -n "${ENABLE_SDL}" ]; then
+		ss_args[${#ss_args[@]}]=--env
+		ss_args[${#ss_args[@]}]="DISPLAY=${ENABLE_SDL}"
+		ss_args[${#ss_args[@]}]=--env
+		local user_home=`getent passwd ${DROP_USER:-root} | cut -d: -f6`
+		ss_args[${#ss_args[@]}]="XAUTHORITY=$user_home/.Xauthority"
+		vm_args[${#vm_args[@]}]=-display
+		vm_args[${#vm_args[@]}]=sdl
+	elif [ -n "$VNC" ]; then
+		vm_args[${#vm_args[@]}]=-display
+		vm_args[${#vm_args[@]}]="vnc=${VNC}"
+	else
+		vm_args[${#vm_args[@]}]=-display
+		vm_args[${#vm_args[@]}]=none
+	fi
+
+	ebegin "Starting ${VM_BINARY##*/} for ${VMNAME} ${FOREGROUND:+at ${FOREGROUND}}"
+	set -- start-stop-daemon \
+		--start "${VM_BINARY}" \
+		--pidfile ${PIDFILE} \
+		"${ss_args[@]}" \
+		-- \
+		"${vm_args[@]}" \
+		-pidfile ${PIDFILE} -monitor unix:${MONITOR},server,nowait \
+		-runas ${DROP_USER} -name ${VMNAME} \
+		-drive file="${DISKIMAGE//,/,,}",if=${DRIVE_MODEL:-virtio},cache=${DRIVE_CACHE:-none} \
+		"${NIC_COMMAND[@]}" \
+		${DISABLE_KVM:---enable-kvm}  \
+		${MEMORY:+-m ${MEMORY}} ${SMP:+-smp ${SMP}} ${OTHER_ARGS}
+	einfo "invoking ${@}"
+	"${@}"
+	ret=$?
+	if [ "0" != "${ret}" -a -n "${QTAP}" ]; then
+		qtap-manipulate destroy ${QTAP}
+	fi
+
+	eend ${ret}
+}
+
+reboot() {
+	symlink_check || return 1
+
+	ebegin "Rebooting ${VMNAME}"
+	send_command system_reset
+	eend $?
+}
+
+stop() {
+	sanity_check || return 1
+
+	ebegin "Powering off ${VMNAME}"
+	send_command system_powerdown
+	eend $?
+
+	ebegin "waiting up to ${TIMEOUT:-60} seconds for it to die"
+	local pid
+	[ -s "${PIDFILE}" ] && pid=$(cat "${PIDFILE}")
+	if [ -z "$pid" ]; then
+		eerror "Couldn't find stored pid at '$PIDFILE'; user will have to manually kill kvm"
+		eerror "Will attempt to destroy qtap despite."
+		eend 1
+	else
+		local ret=1
+		for x in $(seq 0 ${TIMEOUT:-60}); do
+			if kill -0 "${pid}" > /dev/null 2>&1; then
+				sleep 1s
+				continue
+			fi
+			ret=0
+			break
+		done
+		eend $ret
+	fi
+
+	ebegin "Stopping ${VM_BINARY##*/} for ${VMNAME}"
+	if kill -0 "${pid}" > /dev/null 2>&1; then
+		start-stop-daemon --stop "${VM_BINARY}" \
+			--user "${DROP_USER}" \
+			--pidfile "${PIDFILE}" \
+			--quiet
+		eend $?
+	else
+		eend 0  # no need to kill process if it is dead :P
+	fi
+	local qtap
+	[ -s "${QTAP_FILE}" ] && qtap=$(cat "${QTAP_FILE}")
+	if [ -n "$qtap" ]; then
+		ebegin "destroying qtap ${qtap}"
+		qtap-manipulate destroy ${qtap}
+		eend $?
+	fi
+}

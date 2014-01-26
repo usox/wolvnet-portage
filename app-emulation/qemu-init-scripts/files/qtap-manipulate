@@ -1,0 +1,116 @@
+#!/bin/sh
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public Licens
+
+has() {
+	local desired=$1 x
+	shift
+	for x in "$@"; do
+		[ "$desired" = "$x" ] && return 0;
+	done
+	return 1
+}
+
+find_available_node() {
+	local val=$(ifconfig -a | grep -i ^qtap | cut -d: -f1)
+	local pos=0
+	while has qtap${pos} $val; do
+		pos=$(( $pos + 1 ))
+	done
+	echo qtap${pos}
+}
+
+create_node() {
+	local qtap="$1"
+	shift
+	tunctl -b -t "${qtap}" "$@" > /dev/null || die "tunctl failed"
+	brctl addif br0 "${qtap}" || die "brctl failed"
+	ifconfig "${qtap}" up 0.0.0.0 promisc || die "ifconfig failed"
+}
+
+destroy_node() {
+	issue=
+	ifconfig ${1} down || { echo "ifconfig failed";issue=1; }
+	brctl delif br0 ${1} || { echo "brctl failed";issue=2; }
+	tunctl -d ${1} > /dev/null || { echo "tunctl failed";issue=3;}
+	[ -n "${issue}" ] && exit $(( $issue ))
+}
+
+die() {
+	echo "$@" >&2
+	exit 1
+}
+
+usage() {
+	echo "commands available:"
+	echo "create-specific qtap-name [ -u user ] [ -g group ]"
+	echo "create [ -u user ] [ -g group ]"
+	echo "destroy qtap-name"
+	echo
+}
+
+usage_die() {
+	usage
+	die "$@"
+}
+
+create_user=
+create_group=
+
+parse_create_options() {
+	while [ $# -ne 0 ]; do
+		local x="$1"
+		case "$x" in
+			-u=*)
+				shift
+				set -- "-u" "${x#-u=}" "$@"
+				;&
+			-u)
+				shift
+				[ -z "$1" ] && die "-u requires an argument"
+				create_user="$1"
+				shift
+				;;
+			-g=*)
+				shift
+				set -- "-g" "${x#-u=}" "$@"
+				;&
+			-g)
+				shift
+				[ -z "$1" ] && die "-g requires an argument"
+				create_group="$2"
+				shift
+				;;
+			*)
+				die "unknown option $1"
+		esac
+	done
+}
+
+output_qtap=false
+case "$1" in
+	destroy)
+		shift
+		[ $# -eq 0 ] && usage_die "destroy requires a second argument"
+		[ $# -gt 1 ] && usage_die "no idea what to do with args: $@"
+		destroy_node "$1"
+		;;
+	create)
+		output_qtap=true
+		qtap=$(find_available_node)
+		[ -z "$qtap" ] && die "failed to find a qtap node to use"
+		shift
+		set -- create_specific "${qtap}" "$@"
+		;&
+	create_specific)
+		shift
+		qtap="$1"; shift
+		parse_create_options "$@"
+		create_node "$qtap"
+		$output_qtap && echo "$qtap"
+		;;
+	*)
+		usage_die "Unknown command $1"
+		;;
+esac
+exit 0

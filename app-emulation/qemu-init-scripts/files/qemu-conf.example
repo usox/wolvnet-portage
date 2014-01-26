@@ -1,0 +1,88 @@
+# Copyright 1999-2013 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+# DO NOT MODIFY THIS FILE DIRECTLY! CREATE A COPY AND MODIFY THAT INSTEAD!
+
+## Network settings
+
+# MAC address
+#
+# You can generate a new one with this command:
+#
+#   echo "52:54:00:$(dd if=/dev/urandom bs=512 count=1 2>/dev/null | md5sum | sed 's/^\(..\)\(..\)\(..\).*$/\1:\2:\3/')"
+#
+MACADDR=52:54:00:10:34:35
+
+# NIC type.
+#
+# Allowed:
+#   nat   - Automatic qemu NAT network.
+#   br    - Bridged network. Requires 'net.br0' service up and running.
+#   none  - No network.
+#
+# Defaults to 'nat'.
+#
+#NIC_TYPE=br
+
+# NIC model.
+#
+# See qemu documentation.
+#
+# Defaults to 'virtio'.
+#
+#NIC_MODEL=
+
+
+## Storage settings
+
+# Disk image
+DISKIMAGE=/mnt/kvm/gentoo64.qcow2
+
+# Drive model.
+#
+# See qemu documentation.
+#
+# Defaults to 'virtio'.
+#
+#DRIVE_MODEL=
+
+
+##  General settings
+
+# RAM memory allocated for the virtual machine
+#
+# Defaults to 512M
+#
+#MEMORY=1G
+
+# Processor cores allocated for the virtual machine.
+#
+# Defaults to 1 core
+#
+#SMP=2
+
+# Foreground settings
+#
+# Allowed:
+#   vnc=:24  - Runs VNC at :24
+#   sdl=:0   - Runs SDL in X.org server running at :0
+#   none     - Disables foreground
+#
+# Defaults to 'none'.
+#
+FOREGROUND="vnc=:24"
+
+# Low privilege user that runs the virtual machine.
+#
+# Defaults to 'nobody'.
+#DROP_USER=
+
+# Timeout - How many seconds to wait before trying to hard-kill the virtual
+# machine.
+#
+# Defaults to 300 seconds.
+#
+#TIMEOUT=60
+
+# Any other qemu options you may want to use
+OTHER_ARGS="-boot order=cd -cdrom /mnt/archive/gentoo.iso"

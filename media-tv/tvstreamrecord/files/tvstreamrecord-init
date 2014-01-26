@@ -1,0 +1,21 @@
+#!/sbin/runscript
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+[ -z "$INSTANCE" ] && INSTANCE="tvstreamrecord"
+
+depend() {
+        need net
+}
+
+start() {
+        ebegin "Starting tvstreamrecord"
+        eval start-stop-daemon --start -m -b --pidfile /var/run/tvstreamrecord.pid -d /opt/tvstreamrecord --exec "python2 tvstreamrecord.py"
+        eend $?
+}
+
+stop() {
+        ebegin "Stopping tvstreamrecord"
+        start-stop-daemon --stop --signal 2 --quiet --pidfile /var/run/tvstreamrecord.pid
+        eend $?
+}

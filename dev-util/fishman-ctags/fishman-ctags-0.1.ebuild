@@ -4,11 +4,11 @@
 
 EAPI="4"
 
-inherit eutils
+inherit eutils autotools
 
 DESCRIPTION="Exuberant Ctags creates tags files for code browsing in editors"
 HOMEPAGE="https://github.com/fishman"
-SRC_URI="https://github.com/fishman/ctags/archive/master.zip"
+SRC_URI="https://github.com/fishman/ctags/archive/fishman-ctags-0.1.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -16,24 +16,20 @@ KEYWORDS="amd64 x86"
 
 DEPEND="app-admin/eselect-ctags"
 
+src_prepare() {
+	eautoreconf
+}
+
+src_compile() {
+	emake
+}
+
 src_configure() {
-	econf \
-		--with-posix-regex \
-		--without-readlib \
-		--disable-etags \
-		--enable-tmpdir=/tmp
+	econf
 }
 
 src_install() {
-	emake prefix="${D}"/usr mandir="${D}"/usr/share/man install
-
-	# namepace collision with X/Emacs-provided /usr/bin/ctags -- we
-	# rename ctags to exuberant-ctags (Mandrake does this also).
-	mv "${D}"/usr/bin/{ctags,exuberant-ctags} || die
-	mv "${D}"/usr/share/man/man1/{ctags,exuberant-ctags}.1 || die
-
-	dodoc FAQ NEWS README
-	dohtml EXTENDING.html ctags.html
+	emake DESTDIR=${D} install
 }
 
 pkg_postinst() {

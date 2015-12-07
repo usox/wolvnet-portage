@@ -52,7 +52,7 @@ RDEPEND="
 	sys-libs/readline
 	sys-libs/zlib
 	virtual/mysql
-	postgres? ( dev-php/hhvm-postgres )
+	postgres? ( dev-php/hhvm-pgsql )
 "
 
 DEPEND="

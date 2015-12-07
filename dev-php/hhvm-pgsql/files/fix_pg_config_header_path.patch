@@ -1,0 +1,13 @@
+diff --git a/pdo_pgsql_connection.cpp b/pdo_pgsql_connection.cpp
+index e091dde..df2d3bb 100644
+--- a/pdo_pgsql_connection.cpp
++++ b/pdo_pgsql_connection.cpp
+@@ -5,7 +5,7 @@
+ #include "hphp/runtime/ext/stream/ext_stream.h"
+ #include "hphp/runtime/vm/jit/translator-inline.h"
+ #undef PACKAGE_VERSION // pg_config defines it
+-#include "pg_config.h" // needed for PG_VERSION
++#include "/usr/include/postgresql/pg_config.h" // needed for PG_VERSION
+ 
+ #define HANDLE_ERROR(stmt, res) handleError(stmt, sqlstate(res), res.errorMessage())
+ 

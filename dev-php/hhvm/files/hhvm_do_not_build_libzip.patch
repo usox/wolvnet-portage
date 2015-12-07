@@ -1,0 +1,13 @@
+diff -rbBU3 work_orig/hhvm-3.2.0/third-party/CMakeLists.txt work/hhvm-3.2.0/third-party/CMakeLists.txt
+--- work_orig/hhvm-3.2.0/third-party/CMakeLists.txt	2014-12-26 09:59:31.570391869 +0900
++++ work/hhvm-3.2.0/third-party/CMakeLists.txt	2014-12-26 10:00:47.160389661 +0900
+@@ -31,8 +31,7 @@
+   timelib
+   lz4
+   double-conversion
+-  folly
+-  libzip)
++  folly)
+ if(ENABLE_FASTCGI)
+   list(APPEND THIRD_PARTY_MODULES ti)
+   list(APPEND THIRD_PARTY_MODULES thrift)

@@ -1,0 +1,21 @@
+--- a/third-party/CMakeLists.txt
++++ b/third-party/CMakeLists.txt
+@@ -24,7 +24,6 @@ set(THIRD_PARTY_MODULES)
+ set(THIRD_PARTY_HEADERS)
+ 
+ list(APPEND THIRD_PARTY_MODULES
+-  pcre
+   fastlz
+   libafdt
+   libmbfl
+@@ -32,8 +31,7 @@ list(APPEND THIRD_PARTY_MODULES
+   timelib
+   lz4
+   double-conversion
+-  folly
+-  libzip)
++  folly)
+ if(ENABLE_FASTCGI)
+   list(APPEND THIRD_PARTY_MODULES proxygen)
+   list(APPEND THIRD_PARTY_MODULES thrift)
+

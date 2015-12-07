@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+<use>
+	<flag name="hack">Install hh_client, hh_server, and the associated development tools</flag>
+	<flag name="jsonc">Use <pkg>dev-libs/jsoncpp</pkg> for JSON parsing</flag>
+	<flag name="mysql-socket">Include explicit support for Unix socket connections to <pkg>dev-db/mysql</pkg></flag>
+	<flag name="xen">Enable compatibility with xen</flag>
+	<flag name="zend-compat">Enable the Zend compatibility layer for extensions</flag>
+</use>
+</pkgmetadata>

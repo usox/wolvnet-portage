@@ -13,7 +13,7 @@ EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 EGIT_COMMIT="HHVM-${PV}"
 KEYWORDS="-* amd64"
 
-IUSE="debug hack jsonc mysql-socket xen zend-compat postgres"
+IUSE="debug jsonc mysql-socket xen zend-compat postgres"
 
 DESCRIPTION="Virtual Machine, Runtime, and JIT for PHP"
 HOMEPAGE="https://github.com/facebook/hhvm"
@@ -23,7 +23,7 @@ RDEPEND="
 	dev-cpp/glog
 	dev-cpp/tbb
 	dev-db/sqlite
-	hack? ( >=dev-lang/ocaml-3.12[ocamlopt] )
+	>=dev-lang/ocaml-3.12[ocamlopt]
 	>=dev-libs/boost-1.49[context]
 	dev-libs/cloog
 	dev-libs/elfutils

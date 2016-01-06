@@ -8,8 +8,6 @@ inherit eutils git-2 user
 
 EGIT_REPO_URI="https://github.com/PocketRent/hhvm-pgsql.git"
 
-# For now, git is the only way to fetch releases
-# https://github.com/facebook/hhvm/issues/2806
 EGIT_COMMIT="${PV}"
 KEYWORDS="-* amd64"
 
@@ -18,13 +16,9 @@ IUSE="hack"
 DESCRIPTION="Postgres extension for HHVM"
 HOMEPAGE="https://github.com/PocketRent/hhvm-pgsql"
 
-RDEPEND="
+DEPEND="
 	=dev-php/hhvm-3.10.1
 	dev-db/postgresql
-"
-
-DEPEND="
-	${RDEPEND}
 	>=dev-util/cmake-2.8.7
 "
 

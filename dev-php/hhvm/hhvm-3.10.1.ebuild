@@ -13,7 +13,7 @@ EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 EGIT_COMMIT="HHVM-${PV}"
 KEYWORDS="-* amd64"
 
-IUSE="debug jsonc mysql-socket xen zend-compat postgres"
+IUSE="debug jsonc mysql-socket xen zend-compat postgres hack"
 
 DESCRIPTION="Virtual Machine, Runtime, and JIT for PHP"
 HOMEPAGE="https://github.com/facebook/hhvm"
@@ -52,6 +52,9 @@ RDEPEND="
 	sys-libs/readline
 	sys-libs/zlib
 	virtual/mysql
+"
+
+PDEPEND="
 	postgres? ( dev-php/hhvm-pgsql )
 "
 

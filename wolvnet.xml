@@ -3,7 +3,7 @@
 <repositories version="1.0">
 	<repo priority="50" quality="experimental" status="unofficial">
 		<name>wolvnet</name>
-		<description>Must php/hhvm stuff and some media tools.</description>
+		<description>Mostly php/hhvm stuff and some media tools.</description>
 		<homepage>https://github.com/usox/wolvnet-portage</homepage>
 		<owner>
 			<email>dev@usox.org</email>

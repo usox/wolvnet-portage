@@ -1,0 +1,20 @@
+diff --git a/CMake/HHVMExtensionConfig.cmake b/CMake/HHVMExtensionConfig.cmake
+index b4418e8..154d6a8 100644
+--- a/CMake/HHVMExtensionConfig.cmake
++++ b/CMake/HHVMExtensionConfig.cmake
+@@ -893,14 +893,9 @@ function (HHVM_EXTENSION_INTERNAL_HANDLE_LIBRARY_DEPENDENCY extensionID dependen
+       link_libraries(${MYSQL_CLIENT_LIBS})
+     endif()
+   elseif (${libraryName} STREQUAL "pgsql")
+-    FIND_PATH(PGSQL_INCLUDE_DIR NAMES libpq-fe.h
++    FIND_PATH(PGSQL_INCLUDE_DIR NAMES pg_config.h
+       PATHS
+-        /usr/include
+         /usr/include/postgresql
+-        /usr/include/pgsql
+-        /usr/local/include
+-        /usr/local/include/postgresql
+-        /usr/local/include/pgsql
+       )
+     FIND_LIBRARY(PGSQL_LIBRARY NAMES pq
+       PATHS

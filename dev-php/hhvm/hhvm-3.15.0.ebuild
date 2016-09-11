@@ -64,7 +64,7 @@ DEPEND="
 	sys-devel/binutils[static-libs]
 	sys-devel/bison
 	sys-devel/flex
-	postgres? ( dev-dev/postgresql )
+	postgres? ( dev-db/postgresql )
 "
 
 SLOT="0"

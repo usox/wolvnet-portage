@@ -11,7 +11,7 @@ EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 # For now, git is the only way to fetch releases
 # https://github.com/facebook/hhvm/issues/2806
 EGIT_COMMIT="HHVM-${PV}"
-KEYWORDS="-* ~amd64"
+KEYWORDS="-* amd64"
 
 IUSE="debug jsonc mysql-socket xen zend-compat hack postgres"
 

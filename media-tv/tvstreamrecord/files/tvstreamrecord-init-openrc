@@ -1,0 +1,19 @@
+#!/sbin/openrc-run
+
+[ -z "$INSTANCE" ] && INSTANCE="tvstreamrecord"
+
+depend() {
+        need net
+}
+
+start() {
+        ebegin "Starting tvstreamrecord"
+        eval start-stop-daemon --start -m -b --pidfile /var/run/tvstreamrecord.pid -d /opt/tvstreamrecord --exec "python tvstreamrecord.py"
+        eend $?
+}
+
+stop() {
+        ebegin "Stopping tvstreamrecord"
+        start-stop-daemon --stop --signal 2 --quiet --pidfile /var/run/tvstreamrecord.pid
+        eend $?
+}

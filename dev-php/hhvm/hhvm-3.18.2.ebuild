@@ -11,7 +11,7 @@ EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 # For now, git is the only way to fetch releases
 # https://github.com/facebook/hhvm/issues/2806
 EGIT_COMMIT="HHVM-${PV}"
-KEYWORDS="-* ~amd64"
+KEYWORDS="-* amd64"
 
 IUSE="debug jsonc mysql-socket xen zend-compat hack postgres"
 
@@ -24,6 +24,7 @@ RDEPEND="
 	dev-cpp/tbb
 	dev-db/sqlite
 	>=dev-lang/ocaml-3.12[ocamlopt]
+	dev-ml/ocamlbuild[ocamlopt]
 	>=dev-libs/boost-1.49[context]
 	dev-libs/cloog
 	dev-libs/elfutils

@@ -7,5 +7,6 @@
 	<flag name="mysql-socket">Include explicit support for Unix socket connections to <pkg>dev-db/mysql</pkg></flag>
 	<flag name="xen">Enable compatibility with xen</flag>
 	<flag name="zend-compat">Enable the Zend compatibility layer for extensions</flag>
+	<flag name="postgres">Enable postgresql support</flag>
 </use>
 </pkgmetadata>

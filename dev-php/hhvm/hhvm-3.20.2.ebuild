@@ -31,6 +31,7 @@ RDEPEND="
 	dev-libs/expat
 	dev-libs/icu
 	>=dev-libs/jemalloc-3.0.0[stats]
+	dev-libs/double-conversion
 	jsonc? ( dev-libs/json-c )
 	dev-libs/libdwarf
 	>=dev-libs/libevent-2.0.9

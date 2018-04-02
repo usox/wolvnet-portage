@@ -11,12 +11,12 @@ EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 # For now, git is the only way to fetch releases
 # https://github.com/facebook/hhvm/issues/2806
 EGIT_COMMIT="HHVM-${PV}"
-KEYWORDS="-* ~amd64"
+KEYWORDS="-* amd64"
 
-IUSE="debug jsonc mysql-socket xen zend-compat hack postgres"
+IUSE="debug jsonc mysql-socket xen zend-compat hack postgres cpu_flags_x86_sse4_2"
 
 DESCRIPTION="Virtual Machine, Runtime, and JIT for PHP"
-HOMEPAGE="https://github.com/facebook/hhvm"
+HOMEPAGE="http://www.hhvm.com"
 
 RDEPEND="
 	app-arch/bzip2
@@ -24,6 +24,7 @@ RDEPEND="
 	dev-cpp/tbb
 	dev-db/sqlite
 	>=dev-lang/ocaml-3.12[ocamlopt]
+	dev-ml/ocamlbuild[ocamlopt]
 	>=dev-libs/boost-1.49[context]
 	dev-libs/cloog
 	dev-libs/elfutils
@@ -60,7 +61,7 @@ PDEPEND="
 
 DEPEND="
 	${RDEPEND}
-	>=dev-util/cmake-2.8.7
+	>=dev-util/cmake-3.7.2
 	sys-devel/binutils[static-libs]
 	sys-devel/bison
 	sys-devel/flex
@@ -125,6 +126,9 @@ src_configure()
 		HHVM_OPTS="${HHVM_OPTS} -DMYSQL_UNIX_SOCK_ADDR=/dev/null"
 	fi
 
+	# Fix for https://github.com/facebook/hhvm/issues/7503
+	HHVM_OPTS="${HHVM_OPTS} -DCMAKE_C_FLAGS=-O2 -DCMAKE_CXX_FLAGS=-O2"
+
 	econf -DCMAKE_INSTALL_PREFIX="/usr" -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" ${HHVM_OPTS}
 }
 
@@ -135,10 +139,10 @@ src_install()
 	if use hack; then
 		dobin hphp/hack/bin/hh_client
 		dobin hphp/hack/bin/hh_server
+		dobin hphp/hack/bin/hh_parse
 		dobin hphp/hack/bin/hh_single_type_check
 		dodir "/usr/share/hhvm/hack"
 		cp -a "${S}/hphp/hack/editor-plugins/emacs" "${D}/usr/share/hhvm/hack/"
-		cp -a "${S}/hphp/hack/editor-plugins/vim" "${D}/usr/share/hhvm/hack/"
 		cp -a "${S}/hphp/hack/tools" "${D}/usr/share/hhvm/hack/"
 	fi
 

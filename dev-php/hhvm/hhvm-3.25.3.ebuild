@@ -11,21 +11,22 @@ EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
 # For now, git is the only way to fetch releases
 # https://github.com/facebook/hhvm/issues/2806
 EGIT_COMMIT="HHVM-${PV}"
-KEYWORDS="-* amd64"
+KEYWORDS="-* ~amd64"
 
-IUSE="debug jsonc mysql-socket xen zend-compat hack postgres"
+IUSE="debug jsonc mysql-socket xen zend-compat hack postgres cpu_flags_x86_sse4_2"
 
 DESCRIPTION="Virtual Machine, Runtime, and JIT for PHP"
-HOMEPAGE="https://github.com/facebook/hhvm"
+HOMEPAGE="http://www.hhvm.com"
 
 RDEPEND="
 	app-arch/bzip2
-	dev-cpp/glog
+	dev-cpp/glog[gflags]
+	dev-cpp/gflags
 	dev-cpp/tbb
 	dev-db/sqlite
-	>=dev-lang/ocaml-3.12[ocamlopt]
+	>=dev-lang/ocaml-4.05.0[ocamlopt]
+	dev-ml/ocamlbuild[ocamlopt]
 	>=dev-libs/boost-1.49[context]
-	dev-libs/cloog
 	dev-libs/elfutils
 	dev-libs/expat
 	dev-libs/icu
@@ -52,6 +53,8 @@ RDEPEND="
 	sys-libs/readline
 	sys-libs/zlib
 	virtual/mysql
+	dev-libs/double-conversion
+	dev-libs/re2
 "
 
 PDEPEND="
@@ -60,7 +63,7 @@ PDEPEND="
 
 DEPEND="
 	${RDEPEND}
-	>=dev-util/cmake-2.8.7
+	>=dev-util/cmake-3.7.2
 	sys-devel/binutils[static-libs]
 	sys-devel/bison
 	sys-devel/flex
@@ -138,10 +141,10 @@ src_install()
 	if use hack; then
 		dobin hphp/hack/bin/hh_client
 		dobin hphp/hack/bin/hh_server
+		dobin hphp/hack/bin/hh_parse
 		dobin hphp/hack/bin/hh_single_type_check
 		dodir "/usr/share/hhvm/hack"
 		cp -a "${S}/hphp/hack/editor-plugins/emacs" "${D}/usr/share/hhvm/hack/"
-		cp -a "${S}/hphp/hack/editor-plugins/vim" "${D}/usr/share/hhvm/hack/"
 		cp -a "${S}/hphp/hack/tools" "${D}/usr/share/hhvm/hack/"
 	fi
 

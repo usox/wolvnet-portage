@@ -32,6 +32,7 @@ RDEPEND="
 	jsonc? ( dev-libs/json-c )
 	dev-libs/libdwarf
 	>=dev-libs/libevent-2.0.9
+	<=dev-libs/libxml2-2.9.7
 	dev-libs/libmcrypt
 	dev-libs/libmemcached
 	dev-libs/libpcre
@@ -53,9 +54,6 @@ RDEPEND="
 	virtual/mysql
 	dev-libs/double-conversion
 	dev-libs/re2
-	dev-ml/opam
-	dev-ml/findlib[-tk]
-	>=dev-ml/camlp4-4.05
 "
 
 PDEPEND="

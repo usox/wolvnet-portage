@@ -1,0 +1,19 @@
+diff --git a/hphp/runtime/ext/domdocument/ext_domdocument.cpp b/hphp/runtime/ext/domdocument/ext_domdocument.cpp
+index b663824dc8..084a737f8d 100644
+--- a/hphp/runtime/ext/domdocument/ext_domdocument.cpp
++++ b/hphp/runtime/ext/domdocument/ext_domdocument.cpp
+@@ -1460,7 +1460,13 @@ struct notationIterator {
+   xmlNotation *notation;
+ };
+ 
+-static void itemHashScanner(void* payload, void* data, xmlChar* /*name*/) {
++#if LIBXML_VERSION >= 20908
++#define XMLCHAR_CONST const
++#else
++#define XMLCHAR_CONST
++#endif
++static void itemHashScanner(void* payload, void* data, XMLCHAR_CONST xmlChar* /*name*/) {
++#undef XMLCHAR_CONST
+   nodeIterator *priv = (nodeIterator *)data;
+   if (priv->cur < priv->index) {
+     priv->cur++;

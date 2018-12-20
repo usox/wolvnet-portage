@@ -1,0 +1,74 @@
+diff --git a/CMake/HPHPFindLibs.cmake b/CMake/HPHPFindLibs.cmake
+index bad3f85fbe..e2f595a3a8 100644
+--- a/CMake/HPHPFindLibs.cmake
++++ b/CMake/HPHPFindLibs.cmake
+@@ -561,37 +561,10 @@ macro(hphp_link target)
+ 
+   if (LINUX)
+     target_link_libraries(${target})
++    target_link_libraries(${target} atomic)
+   endif()
+ 
+   if (MSVC)
+     target_link_libraries(${target} dbghelp.lib dnsapi.lib)
+   endif()
+-
+-# Check whether atomic operations require -latomic or not
+-# See https://github.com/facebook/hhvm/issues/5217
+-  include(CheckCXXSourceCompiles)
+-  set(OLD_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+-  set(CMAKE_REQUIRED_FLAGS "-std=c++1y")
+-  CHECK_CXX_SOURCE_COMPILES("
+-#include <atomic>
+-#include <iostream>
+-#include <stdint.h>
+-int main() {
+-    struct Test { int64_t val1; int64_t val2; };
+-    std::atomic<Test> s;
+-    // Do this to stop modern compilers from optimizing away the libatomic
+-    // calls in release builds, making this test always pass in release builds,
+-    // and incorrectly think that HHVM doesn't need linking against libatomic.
+-    bool (std::atomic<Test>::* volatile x)(void) const =
+-      &std::atomic<Test>::is_lock_free;
+-    std::cout << (s.*x)() << std::endl;
+-}
+-  " NOT_REQUIRE_ATOMIC_LINKER_FLAG)
+-
+-  if(NOT "${NOT_REQUIRE_ATOMIC_LINKER_FLAG}")
+-      message(STATUS "-latomic is required to link hhvm")
+-      find_library(ATOMIC_LIBRARY NAMES atomic libatomic.so.1)
+-      target_link_libraries(${target} ${ATOMIC_LIBRARY})
+-  endif()
+-  set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQUIRED_FLAGS})
+ endmacro()
+diff --git a/hphp/hhvm/CMakeLists.txt b/hphp/hhvm/CMakeLists.txt
+index f70bd1f542..5559fa0f57 100644
+--- a/hphp/hhvm/CMakeLists.txt
++++ b/hphp/hhvm/CMakeLists.txt
+@@ -51,6 +51,26 @@ if (ENABLE_SPLIT_DWARF)
+   target_link_libraries(hhvm debug "-Wl,--gdb-index")
+ endif()
+ 
++# Check whether atomic operations require -latomic or not
++# See https://github.com/facebook/hhvm/issues/5217
++INCLUDE(CheckCXXSourceCompiles)
++set(OLD_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
++set(CMAKE_REQUIRED_FLAGS "-std=c++1y")
++CHECK_CXX_SOURCE_COMPILES("
++#include <atomic>
++int main() {
++    struct Test { int val; };
++    std::atomic<Test> s;
++    s.is_lock_free();
++}
++" NOT_REQUIRE_ATOMIC_LINKER_FLAG)
++
++if(NOT "${NOT_REQUIRE_ATOMIC_LINKER_FLAG}")
++    message(STATUS "-latomic is required to link hhvm")
++    target_link_libraries(hhvm atomic)
++endif()
++set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQUIRED_FLAGS})
++
+ embed_all_systemlibs(hhvm "${CMAKE_CURRENT_BINARY_DIR}/.." "${CMAKE_CURRENT_BINARY_DIR}/hhvm")
+ add_dependencies(hhvm systemlib)
+ 

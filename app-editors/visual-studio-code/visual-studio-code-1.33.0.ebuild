@@ -54,7 +54,7 @@ src_install(){
 	fperms +x "/opt/${PN}/libnode.so"
 	fperms +x "/opt/${PN}/resources/app/node_modules.asar.unpacked/vscode-ripgrep/bin/rg"
 	insinto "/usr/share/licenses/${PN}"
-	newins "resources/app/LICENSE.txt" "LICENSE"
+	newins "resources/app/LICENSE.rtf" "LICENSE"
 }
 
 pkg_postinst(){

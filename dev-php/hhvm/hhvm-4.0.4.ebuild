@@ -2,18 +2,27 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI="5"
+EAPI="6"
 
-inherit eutils user
+inherit eutils git-r3 user
 
+EGIT_REPO_URI="https://github.com/facebook/hhvm.git"
+
+# For now, git is the only way to fetch releases
+# https://github.com/facebook/hhvm/issues/2806
+EGIT_COMMIT="HHVM-${PV}"
 KEYWORDS="-* ~amd64"
 
-SRC_URI="https://dl.hhvm.com/source/hhvm-${PV}.tar.gz"
+PATCHES=(
+	"${FILESDIR}/hhvm_change_library_include_path.patch"
+	"${FILESDIR}/revert_to_old_atomic_linking.patch-r1"
+)
 
-IUSE="debug jsonc mysql-socket xen zend-compat hack postgres cpu_flags_x86_sse4_2"
+IUSE="debug jsonc mysql-socket xen zend-compat hack postgres"
 
-DESCRIPTION="Virtual Machine, Runtime, and JIT for PHP"
+DESCRIPTION="Virtual Machine, Runtime, and JIT for Hacklang"
 HOMEPAGE="http://www.hhvm.com"
+RESTRICT="network-sandbox"
 
 RDEPEND="
 	app-arch/bzip2
@@ -84,13 +93,6 @@ pkg_setup() {
 	enewgroup hhvm
 	enewuser hhvm -1 -1 "/var/lib/hhvm" hhvm
 	eend $?
-}
-
-src_prepare()
-{
-	git submodule update --init --recursive
-	epatch "${FILESDIR}/hhvm_change_library_include_path.patch"
-	epatch "${FILESDIR}/revert_to_old_atomic_linking.patch-r1"
 }
 
 src_configure()
